@@ -54,8 +54,8 @@ First release. Swipe to merge gems, reach 2048, beat your best score.
 - Is data encrypted in transit? Not applicable (no data transmitted).
 - Can users request deletion? Not applicable (nothing is collected).
 - App Store: "Data Not Collected".
-- Privacy policy URL: https://pity-studio.github.io/temple-2048/privacy.html
+- Privacy policy URL: https://ofek-studio.github.io/temple-2048/privacy.html
 
 ## Contact
-- Support email: pitystudio.games@gmail.com
-- Website: https://pity-studio.github.io/temple-2048/ (optional)
+- Support email: ofekstudio.games@gmail.com
+- Website: https://ofek-studio.github.io/temple-2048/ (optional)

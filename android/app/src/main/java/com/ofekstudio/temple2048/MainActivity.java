@@ -1,4 +1,4 @@
-package com.pitystudio.temple2048;
+package com.ofekstudio.temple2048;
 
 import com.getcapacitor.BridgeActivity;
 

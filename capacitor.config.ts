@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.pitystudio.temple2048',
+  appId: 'com.ofekstudio.temple2048',
   appName: 'Temple 2048',
   webDir: 'dist',
   backgroundColor: '#06331f',

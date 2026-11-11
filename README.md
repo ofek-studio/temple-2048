@@ -23,7 +23,7 @@ Open http://localhost:5180. Swipe (or use arrow keys / WASD) to move the orbs.
 - `src/game/Native.ts` – Capacitor haptics wrapper (no-op in the browser).
 - `src/game/Storage.ts` – localStorage save of the board, score and best score.
 - `src/scenes/` – Boot (builds textures), Menu, Game.
-- `capacitor.config.ts` – app id `com.pitystudio.temple2048`, app name `Temple 2048`.
+- `capacitor.config.ts` – app id `com.ofekstudio.temple2048`, app name `Temple 2048`.
 
 ## Building the native apps
 

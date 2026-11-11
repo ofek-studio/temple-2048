@@ -12,7 +12,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.pitystudio.temple2048
+        bundle_identifier: com.ofekstudio.temple2048
       node: 20
       xcode: latest
       cocoapods: default
