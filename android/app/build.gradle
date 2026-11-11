@@ -7,10 +7,10 @@ def keystoreFile = rootProject.file('keystore.properties')
 if (keystoreFile.exists()) keystoreProps.load(new FileInputStream(keystoreFile))
 
 android {
-    namespace "co.shortforge.temple2048"
+    namespace "com.pitystudio.temple2048"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "co.shortforge.temple2048"
+        applicationId "com.pitystudio.temple2048"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

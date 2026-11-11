@@ -7,7 +7,7 @@
 npm run cap:sync
 ```
 
-לפני ההעלאה הראשונה כדאי להחליט סופית על שם ומזהה חבילה. כרגע: שם `Temple 2048`, מזהה `co.shortforge.temple2048`
+שם המפתח בחנויות: **Pity Studio**. שם המשחק `Temple 2048`, מזהה חבילה `com.pitystudio.temple2048`
 (ב‑`capacitor.config.ts` וב‑`src/game/Config.ts`). את המזהה אי אפשר לשנות אחרי הפרסום. לא להשתמש במילה Zuma בשם, זה סימן מסחרי.
 
 ---
@@ -33,7 +33,7 @@ npm run cap:android
 - JDK 21 ו‑Android SDK מותקנים ב‑`C:\Users\age_N\android-tools` (בלי Android Studio). בנייה של AAB חתום מהטרמינל:
 
 ```bash
-npm run build && npx cap sync android && cd android && set JAVA_HOME=C:\Users\age_N\android-tools\jdk17 && gradlew bundleRelease
+npm run build && npx cap sync android && cd android && set JAVA_HOME=C:\Users\age_N\android-tools\jdk21 && gradlew bundleRelease
 ```
 
   הקובץ: `android/app/build/outputs/bundle/release/app-release.aab`. לכל גרסה חדשה להעלות `versionCode` ו‑`versionName` ב‑`android/app/build.gradle`.
@@ -46,7 +46,9 @@ npm run build && npx cap sync android && cd android && set JAVA_HOME=C:\Users\ag
    - **Content rating** – שאלון קצר (משחק פאזל, ללא אלימות) → דירוג "Everyone".
    - **Target audience** – 13+ (ככה לא נכנסים לדרישות "Designed for Families").
    - **Data safety** – המשחק לא אוסף ולא שולח נתונים (שמירה מקומית בלבד).
-   - **Privacy policy** – חובה קישור. העמוד מוכן: `https://shortforge.co/temple2048/privacy` (כבר באוויר) (המקור ב‑shorts-studio/public/temple2048/privacy.html, עולה לאוויר עם git push של אתר הנחיתה; עותק גם ב‑public/privacy.html בתיקיית המשחק).
+   - **Privacy policy** – חובה קישור. הכתובת: `https://pity-studio.github.io/temple-2048/privacy.html`.
+     המקור בתיקיית `docs/` של המשחק (index.html = עמוד Pity Studio, privacy.html = המדיניות). עולה לאוויר ברגע שה‑repo ב‑GitHub תחת הארגון `pity-studio` בשם `temple-2048`,
+     ובהגדרות ה‑repo: Settings > Pages > Source = Deploy from a branch, Branch = main, Folder = /docs. המייל במדיניות: pitystudio.games@gmail.com (לפתוח את ה‑Gmail הזה, או להחליף בקובץ).
    - **Store listing** – תיאור קצר (80 תווים), תיאור מלא, אייקון 512×512 (יש ב‑`assets/icon-only.png`, להקטין), Feature graphic 1024×500, לפחות 2 צילומי מסך טלפון (מומלץ 1080×1920).
 3. **Testing > Internal testing** – להעלות את ה‑AAB, להוסיף את המייל שלך כבודק, ולהתקין מהקישור. זה גם הדרך לבדוק את כפתור "Rate us" (הוא פותח את דף המשחק ב‑Play).
 4. **Production > Create new release** – אותו AAB, הערות גרסה, **Start rollout**. ביקורת ראשונה לוקחת בדרך כלל 1‑7 ימים.
@@ -73,7 +75,7 @@ npm install
 npm run cap:sync
 npx cap open ios
 ```
-- ב‑Xcode: לבחור את הטארגט **App** → Signing & Capabilities → Team = החשבון שלך, Bundle Identifier = `co.shortforge.temple2048`.
+- ב‑Xcode: לבחור את הטארגט **App** → Signing & Capabilities → Team = החשבון שלך, Bundle Identifier = `com.pitystudio.temple2048`.
 - Product > Run על סימולטור/אייפון כדי לבדוק.
 
 ### 3. App Store Connect
