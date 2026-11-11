@@ -39,7 +39,7 @@ export class MenuScene extends Phaser.Scene {
 
     goldText(this, W / 2, 230, 'TEMPLE', 120, 14);
     goldText(this, W / 2, 350, '2048', 118, 14);
-    stoneText(this, W / 2, 445, 'MERGE THE SACRED ORBS', 28, '#cfe6c0');
+    stoneText(this, W / 2, 445, 'MERGE THE SACRED GEMS', 28, '#cfe6c0');
 
     const frog = img(this, W / 2, 835, 'frog').setOrigin(0.5, 1).setScale(1.12 * TEX);
     const lids = img(this, W / 2, 835, 'frog-lids').setOrigin(0.5, 1).setScale(1.12 * TEX).setVisible(false);
@@ -75,7 +75,7 @@ export class MenuScene extends Phaser.Scene {
       this.tweens.add({ targets: btn, scale: 1.05, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     }
 
-    stoneText(this, W / 2, DESIGN_H - 60, 'swipe to move  •  match orbs to merge', 22, '#9fc49a').setAlpha(0.8);
+    stoneText(this, W / 2, DESIGN_H - 60, 'swipe to move  •  match gems to merge', 22, '#9fc49a').setAlpha(0.8);
 
     this.input.once('pointerdown', () => sfx.unlock());
   }

@@ -27,10 +27,16 @@ npm run cap:android
 
 - Android Studio יבצע Gradle Sync (בפעם הראשונה כמה דקות). אפשר להריץ על אמולטור או על טלפון אנדרואיד ב‑USB (להפעיל Developer options > USB debugging) כדי לראות את המשחק אמיתי.
 
-### 3. חתימה (keystore) – פעם אחת בחיים של האפליקציה
-- ב‑Android Studio: **Build > Generate Signed Bundle / APK > Android App Bundle > Create new…**
-- לשמור את קובץ ה‑`.jks` והסיסמאות במקום בטוח (למשל 1Password + גיבוי). בלי הקובץ הזה אי אפשר לפרסם עדכונים לעולם.
-- לבחור **release** וללחוץ Finish. מתקבל `android/app/release/app-release.aab`.
+### 3. חתימה (keystore) – כבר נוצר
+- קובץ החתימה: `android/release.jks`. הסיסמאות ושם המפתח (`temple2048`) בקובץ `android/keystore.properties`. שניהם מחוץ ל‑git.
+- **לגבות את שני הקבצים עכשיו** (1Password / דרייב מוצפן). בלי ה‑keystore אי אפשר לפרסם עדכונים לעולם.
+- JDK 21 ו‑Android SDK מותקנים ב‑`C:\Users\age_N\android-tools` (בלי Android Studio). בנייה של AAB חתום מהטרמינל:
+
+```bash
+npm run build && npx cap sync android && cd android && set JAVA_HOME=C:\Users\age_N\android-tools\jdk17 && gradlew bundleRelease
+```
+
+  הקובץ: `android/app/build/outputs/bundle/release/app-release.aab`. לכל גרסה חדשה להעלות `versionCode` ו‑`versionName` ב‑`android/app/build.gradle`.
 
 ### 4. יצירת האפליקציה ב‑Play Console
 1. **Create app** – שם, שפה, סוג: Game, חינמית.
@@ -45,8 +51,10 @@ npm run cap:android
 3. **Testing > Internal testing** – להעלות את ה‑AAB, להוסיף את המייל שלך כבודק, ולהתקין מהקישור. זה גם הדרך לבדוק את כפתור "Rate us" (הוא פותח את דף המשחק ב‑Play).
 4. **Production > Create new release** – אותו AAB, הערות גרסה, **Start rollout**. ביקורת ראשונה לוקחת בדרך כלל 1‑7 ימים.
 
-### 5. צילומי מסך בלי טלפון
-- להריץ `npm run dev`, לפתוח ב‑Chrome, F12 → Device toolbar → Pixel 7 (412×915) → Capture screenshot. או מהאמולטור ב‑Android Studio.
+### 5. צילומי מסך וטקסטים – מוכנים
+- `store/screenshots/play/` – 3 צילומים 1440×2560 ל‑Google Play; `store/screenshots/feature-graphic-1024x500.png` – ה‑Feature graphic; אייקון 512 אפשר להקטין מ‑`assets/icon-only.png`.
+- `store/screenshots/6.7in/` ו‑`6.5in/` – צילומים בגדלים המדויקים ל‑App Store.
+- `store/listing.md` – שם, תיאורים, מילות מפתח, ותשובות לשאלוני דירוג התוכן ו‑Data safety.
 
 ---
 

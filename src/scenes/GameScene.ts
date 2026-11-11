@@ -449,8 +449,8 @@ export class GameScene extends Phaser.Scene {
 
     const dim = addDim(this);
     const panel = img(this, W / 2, DESIGN_H / 2, 'panel');
-    const title = goldText(this, W / 2, DESIGN_H / 2 - 170, won ? 'SACRED ORB!' : 'GAME OVER', won ? 62 : 66, 9);
-    const sub = stoneText(this, W / 2, DESIGN_H / 2 - 95, won ? 'You forged the 2048 orb' : 'The temple is full', 28, '#d9cf9a');
+    const title = goldText(this, W / 2, DESIGN_H / 2 - 170, won ? 'SACRED GEM!' : 'GAME OVER', won ? 62 : 66, 9);
+    const sub = stoneText(this, W / 2, DESIGN_H / 2 - 95, won ? 'You forged the 2048 gem' : 'The temple is full', 28, '#d9cf9a');
     const score = stoneText(this, W / 2, DESIGN_H / 2 - 20, `SCORE  ${this.engine.score}`, 44);
     const best = stoneText(this, W / 2, DESIGN_H / 2 + 40, `BEST  ${this.engine.best}`, 30, '#ffe9a8');
 

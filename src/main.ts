@@ -31,4 +31,8 @@ document.addEventListener('visibilitychange', () => {
 });
 [200, 600, 1500].forEach((ms) => setTimeout(refresh, ms));
 
-if (import.meta.env.DEV) (window as unknown as { __rating: typeof rating }).__rating = rating;
+if (import.meta.env.DEV) {
+  const w = window as unknown as { __rating: typeof rating; __game: Phaser.Game };
+  w.__rating = rating;
+  w.__game = game;
+}
