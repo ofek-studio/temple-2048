@@ -48,7 +48,7 @@ npm run build && npx cap sync android && cd android && set JAVA_HOME=C:\Users\ag
    - **Data safety** – המשחק לא אוסף ולא שולח נתונים (שמירה מקומית בלבד).
    - **Privacy policy** – חובה קישור. הכתובת: `https://ofek-studio.github.io/temple-2048/privacy.html`.
      המקור בתיקיית `docs/` של המשחק (index.html = עמוד Ofek Studio, privacy.html = המדיניות). עולה לאוויר ברגע שה‑repo ב‑GitHub תחת הארגון `ofek-studio` בשם `temple-2048`,
-     ובהגדרות ה‑repo: Settings > Pages > Source = Deploy from a branch, Branch = main, Folder = /docs. המייל במדיניות: ofekstudio.games@gmail.com (לפתוח את ה‑Gmail הזה, או להחליף בקובץ).
+     ובהגדרות ה‑repo: Settings > Pages > Source = Deploy from a branch, Branch = main, Folder = /docs. המייל במדיניות ובחנות כרגע: idanrahamim77@gmail.com (אפשר להחליף אחר כך בקובץ docs/privacy.html וב‑store/listing.md).
    - **Store listing** – תיאור קצר (80 תווים), תיאור מלא, אייקון 512×512 (יש ב‑`assets/icon-only.png`, להקטין), Feature graphic 1024×500, לפחות 2 צילומי מסך טלפון (מומלץ 1080×1920).
 3. **Testing > Internal testing** – להעלות את ה‑AAB, להוסיף את המייל שלך כבודק, ולהתקין מהקישור. זה גם הדרך לבדוק את כפתור "Rate us" (הוא פותח את דף המשחק ב‑Play).
 4. **Production > Create new release** – אותו AAB, הערות גרסה, **Start rollout**. ביקורת ראשונה לוקחת בדרך כלל 1‑7 ימים.

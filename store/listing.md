@@ -57,5 +57,5 @@ First release. Swipe to merge gems, reach 2048, beat your best score.
 - Privacy policy URL: https://ofek-studio.github.io/temple-2048/privacy.html
 
 ## Contact
-- Support email: ofekstudio.games@gmail.com
+- Support email: idanrahamim77@gmail.com
 - Website: https://ofek-studio.github.io/temple-2048/ (optional)
