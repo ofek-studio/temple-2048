@@ -1,0 +1,40 @@
+# Codemagic (codemagic.io) build for iOS without a Mac.
+# Setup once in the Codemagic UI: connect this repo, add an App Store Connect API key
+# (integration name "app_store_connect"), and set the environment group "ios_signing"
+# via Codemagic's automatic code signing (it creates certificates/profiles for you).
+workflows:
+  ios-release:
+    name: iOS App Store build
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: app_store_connect
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: co.shortforge.temple2048
+      node: 20
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies and build web
+        script: |
+          npm ci
+          npm run build
+          npx cap sync ios
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Bump build number
+        script: |
+          cd ios/App
+          agvtool new-version -all $(($(app-store-connect get-latest-app-store-build-number "$APP_APPLE_ID" 2>/dev/null || echo 0) + 1))
+      - name: Build IPA
+        script: |
+          xcode-project build-ipa --workspace "ios/App/App.xcworkspace" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
