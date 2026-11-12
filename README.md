@@ -17,12 +17,31 @@ Open http://localhost:5180. Swipe (or use arrow keys / WASD) to move the orbs.
 
 ## Project layout
 
-- `src/game/Engine.ts` – pure 2048 rules (move, merge, spawn, undo, game-over). No rendering.
-- `src/game/Textures.ts` – procedural art (orbs, board, background, frog, plaques, buttons).
-- `src/game/Audio.ts` – WebAudio synth for pops, combos, win/lose jingles.
+- `src/game/Engine.ts` – pure 2048 rules for any board size (move, merge, spawn, limited undo,
+  hammer, shuffle, zen relief, seeded RNG). No rendering.
+- `src/game/Modes.ts` – the game modes: Classic, Time Attack (2 min), Zen (no game over),
+  Mini 3x3, Grand 5x5 and the Daily Trial (seeded board + three goals per calendar day).
+- `src/game/Daily.ts` – day seed, goal generation and goal evaluation for the Daily Trial.
+- `src/game/Progress.ts` – localStorage: per-mode saves and bests, lifetime stats, day streak,
+  daily results, gem gallery unlocks, tutorial flag.
+- `src/game/Textures.ts` – procedural art (orbs, 3/4/5 boards, background, frog, plaques, icons).
+- `src/game/Audio.ts` – WebAudio synth for effects plus a generative ambient music loop and the
+  "board almost full" heartbeat.
+- `src/game/Share.ts` – share sheet (Capacitor Share on devices, Web Share / clipboard on the web).
 - `src/game/Native.ts` – Capacitor haptics wrapper (no-op in the browser).
-- `src/game/Storage.ts` – localStorage save of the board, score and best score.
-- `src/scenes/` – Boot (builds textures), Menu, Game.
+- `src/scenes/` – Boot (builds textures), Menu, Game, Modes, Daily (calendar + goals),
+  Temple (gem gallery, stats, share).
+
+## Gameplay features
+
+- Boosters per game: 3 undos, 1 hammer (tap a gem to smash it), 1 shuffle. Zen has more.
+- Daily Trial: everyone gets the same seeded board; goals are "forge gem X", "score Y" and
+  either "combo xN in one swipe" or "forge X without boosters". Stars are kept per day in a
+  calendar; the day streak counts any mode played on consecutive days.
+- Gem gallery unlocks every value forged for the first time (with the date), and the
+  Chronicles panel keeps lifetime stats. Both can be shared as text.
+- First launch shows a short animated tutorial; the board pulses red with a heartbeat when
+  only one cell is free.
 - `capacitor.config.ts` – app id `com.ofekstudio.temple2048`, app name `Temple 2048`.
 
 ## Building the native apps

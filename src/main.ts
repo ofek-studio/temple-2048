@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { GameScene } from './scenes/GameScene';
+import { ModesScene } from './scenes/ModesScene';
+import { DailyScene } from './scenes/DailyScene';
+import { TempleScene } from './scenes/TempleScene';
 import { W, H, DPR } from './game/Textures';
 import { rating } from './game/Rating';
 
@@ -19,7 +22,7 @@ const game = new Phaser.Game({
   },
   render: { antialias: true, roundPixels: false },
   input: { activePointers: 1 },
-  scene: [BootScene, MenuScene, GameScene],
+  scene: [BootScene, MenuScene, GameScene, ModesScene, DailyScene, TempleScene],
 });
 
 // Some WebViews / emulated viewports resize without firing Phaser's own listener; refresh explicitly.

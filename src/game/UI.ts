@@ -184,3 +184,30 @@ export function addFireflies(scene: Phaser.Scene): void {
     quantity: 1,
   });
 }
+
+/** Small red counter pinned to a button's top-right corner. Returns an updater. */
+export function addBadge(scene: Phaser.Scene, btn: Button, count: number): (n: number) => void {
+  const bg = img(scene, 40, -28, 'badge');
+  const txt = stoneText(scene, 40, -28, String(count), 20);
+  btn.add([bg, txt]);
+  return (n: number) => {
+    const show = n > 0 && n < 99;
+    bg.setVisible(show);
+    txt.setVisible(show);
+    txt.setText(String(n));
+  };
+}
+
+/** Icon button with a text label under it (used on the menu). */
+export function makeLabeledIcon(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  iconKey: string,
+  label: string,
+  onClick: () => void,
+): Button {
+  const btn = makeIconButton(scene, x, y, iconKey, 'button-sm', onClick);
+  stoneText(scene, x, y + 62, label, 20, '#d9cf9a');
+  return btn;
+}

@@ -38,30 +38,72 @@ export interface SaveState {
   score: number;
   best: number;
   won: boolean;
+  /** booster charges left in this game (older saves lack these fields) */
+  undos?: number;
+  hammers?: number;
+  shuffles?: number;
+  moveCount?: number;
+  /** seconds left (timed mode) */
+  timeLeft?: number;
+  /** elapsed play seconds in this game */
+  elapsed?: number;
+  /** daily challenge day key, so a stale daily save is not resumed on another day */
+  dayKey?: string;
+  /** daily goal bookkeeping */
+  bestCombo?: number;
+  boostersUsed?: boolean;
+  /** whether this was a fresh game whose stats were already counted */
+  counted?: boolean;
 }
 
 export const SIZE = 4;
 export const WIN_VALUE = 2048;
 
+/** Deterministic PRNG (mulberry32) so a daily board is the same for everyone. */
+export function seededRandom(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export class Engine {
   grid: (Tile | null)[][] = [];
   score = 0;
   best = 0;
-  /** set once the player reached WIN_VALUE (they may keep playing) */
+  /** set once the player reached winValue (they may keep playing) */
   won = false;
+  moveCount = 0;
+  /** booster charges */
+  undos = 3;
+  hammers = 1;
+  shuffles = 1;
   private nextId = 1;
   private history: { grid: (number | null)[][]; score: number } | null = null;
   private rng: () => number;
 
-  constructor(rng: () => number = Math.random) {
+  constructor(
+    rng: () => number = Math.random,
+    public readonly size = SIZE,
+    public readonly winValue = WIN_VALUE,
+    private readonly boosters: { undos: number; hammers: number; shuffles: number } = { undos: 3, hammers: 1, shuffles: 1 },
+  ) {
     this.rng = rng;
     this.reset();
   }
 
   reset(): void {
-    this.grid = Array.from({ length: SIZE }, () => Array<Tile | null>(SIZE).fill(null));
+    this.grid = Array.from({ length: this.size }, () => Array<Tile | null>(this.size).fill(null));
     this.score = 0;
     this.won = false;
+    this.moveCount = 0;
+    this.undos = this.boosters.undos;
+    this.hammers = this.boosters.hammers;
+    this.shuffles = this.boosters.shuffles;
     this.history = null;
     this.spawn();
     this.spawn();
@@ -77,6 +119,13 @@ export class Engine {
     return this.grid.map((row) => row.map((t) => (t ? t.value : null)));
   }
 
+  /** Largest tile on the board. */
+  maxTile(): number {
+    let m = 0;
+    for (const t of this.tiles()) if (t.value > m) m = t.value;
+    return m;
+  }
+
   loadValues(values: (number | null)[][]): void {
     this.grid = values.map((row, r) =>
       row.map((v, c) => (v ? { id: this.nextId++, value: v, r, c } : null)),
@@ -84,7 +133,16 @@ export class Engine {
   }
 
   save(): SaveState {
-    return { grid: this.values(), score: this.score, best: this.best, won: this.won };
+    return {
+      grid: this.values(),
+      score: this.score,
+      best: this.best,
+      won: this.won,
+      undos: this.undos,
+      hammers: this.hammers,
+      shuffles: this.shuffles,
+      moveCount: this.moveCount,
+    };
   }
 
   load(s: SaveState): void {
@@ -92,25 +150,61 @@ export class Engine {
     this.score = s.score;
     this.best = s.best;
     this.won = s.won;
+    this.undos = s.undos ?? this.boosters.undos;
+    this.hammers = s.hammers ?? this.boosters.hammers;
+    this.shuffles = s.shuffles ?? this.boosters.shuffles;
+    this.moveCount = s.moveCount ?? 0;
     this.history = null;
   }
 
   canUndo(): boolean {
-    return this.history !== null;
+    return this.history !== null && this.undos > 0;
   }
 
   undo(): boolean {
-    if (!this.history) return false;
+    if (!this.canUndo() || !this.history) return false;
     this.loadValues(this.history.grid);
     this.score = this.history.score;
+    this.history = null;
+    this.undos -= 1;
+    return true;
+  }
+
+  /** Remove one tile (the "hammer" booster). Returns the removed tile. */
+  hammer(r: number, c: number): Tile | null {
+    if (this.hammers <= 0) return null;
+    const t = this.grid[r]?.[c];
+    if (!t) return null;
+    this.grid[r][c] = null;
+    this.hammers -= 1;
+    this.history = null;
+    return t;
+  }
+
+  /** Reposition every tile randomly (the "shuffle" booster). */
+  shuffle(): boolean {
+    if (this.shuffles <= 0) return false;
+    const tiles = this.tiles();
+    const cells: [number, number][] = [];
+    for (let r = 0; r < this.size; r++) for (let c = 0; c < this.size; c++) cells.push([r, c]);
+    for (let i = cells.length - 1; i > 0; i--) {
+      const j = Math.floor(this.rng() * (i + 1));
+      [cells[i], cells[j]] = [cells[j], cells[i]];
+    }
+    this.grid = Array.from({ length: this.size }, () => Array<Tile | null>(this.size).fill(null));
+    tiles.forEach((t, i) => {
+      const [r, c] = cells[i];
+      this.grid[r][c] = { ...t, r, c };
+    });
+    this.shuffles -= 1;
     this.history = null;
     return true;
   }
 
   emptyCells(): [number, number][] {
     const cells: [number, number][] = [];
-    for (let r = 0; r < SIZE; r++)
-      for (let c = 0; c < SIZE; c++) if (!this.grid[r][c]) cells.push([r, c]);
+    for (let r = 0; r < this.size; r++)
+      for (let c = 0; c < this.size; c++) if (!this.grid[r][c]) cells.push([r, c]);
     return cells;
   }
 
@@ -123,14 +217,26 @@ export class Engine {
     return tile;
   }
 
+  /** Zen mode relief: clear the smallest tiles so play can continue. Returns removed tiles. */
+  clearSmallest(): Tile[] {
+    const tiles = this.tiles();
+    if (tiles.length === 0) return [];
+    const min = Math.min(...tiles.map((t) => t.value));
+    const removed = tiles.filter((t) => t.value === min || t.value === min * 2);
+    for (const t of removed) this.grid[t.r][t.c] = null;
+    this.history = null;
+    return removed;
+  }
+
   /** True when no move changes the board. */
   isGameOver(): boolean {
     if (this.emptyCells().length > 0) return false;
-    for (let r = 0; r < SIZE; r++) {
-      for (let c = 0; c < SIZE; c++) {
+    const n = this.size;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
         const v = this.grid[r][c]!.value;
-        if (r + 1 < SIZE && this.grid[r + 1][c]!.value === v) return false;
-        if (c + 1 < SIZE && this.grid[r][c + 1]!.value === v) return false;
+        if (r + 1 < n && this.grid[r + 1][c]!.value === v) return false;
+        if (c + 1 < n && this.grid[r][c + 1]!.value === v) return false;
       }
     }
     return true;
@@ -139,20 +245,19 @@ export class Engine {
   move(dir: Dir): MoveResult {
     const result: MoveResult = { moved: false, moves: [], merges: [], spawned: null, scoreGain: 0 };
     const before = { grid: this.values(), score: this.score };
+    const n = this.size;
 
-    const newGrid: (Tile | null)[][] = Array.from({ length: SIZE }, () =>
-      Array<Tile | null>(SIZE).fill(null),
-    );
+    const newGrid: (Tile | null)[][] = Array.from({ length: n }, () => Array<Tile | null>(n).fill(null));
 
     // Each "line" is a list of cells in traversal order (the first cell is where tiles pile up).
-    for (let i = 0; i < SIZE; i++) {
+    for (let i = 0; i < n; i++) {
       const cells: [number, number][] = [];
-      for (let k = 0; k < SIZE; k++) {
+      for (let k = 0; k < n; k++) {
         switch (dir) {
           case 'left': cells.push([i, k]); break;
-          case 'right': cells.push([i, SIZE - 1 - k]); break;
+          case 'right': cells.push([i, n - 1 - k]); break;
           case 'up': cells.push([k, i]); break;
-          case 'down': cells.push([SIZE - 1 - k, i]); break;
+          case 'down': cells.push([n - 1 - k, i]); break;
         }
       }
 
@@ -169,7 +274,7 @@ export class Engine {
           if (prevMove) prevMove.consumed = true;
           result.merges.push({ tile: merged, fromIds: [last.srcId, tile.id] });
           result.scoreGain += merged.value;
-          if (merged.value >= WIN_VALUE) this.won = true;
+          if (merged.value >= this.winValue) this.won = true;
           placed[placed.length - 1] = { tile: merged, merged: true, srcId: merged.id };
           result.moved = true;
         } else {
@@ -192,6 +297,7 @@ export class Engine {
     this.score += result.scoreGain;
     if (this.score > this.best) this.best = this.score;
     this.history = before;
+    this.moveCount += 1;
     result.spawned = this.spawn();
     return result;
   }

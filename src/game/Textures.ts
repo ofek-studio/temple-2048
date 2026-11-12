@@ -30,6 +30,31 @@ export const ORB_SCALE = (BALL / BALL_TEX) * TEX;
 export const BOARD_X = (W - BOARD) / 2;
 export const BOARD_Y = 440;
 
+/** Geometry for an n x n board inside the same 660px stone slab. */
+export interface BoardGeom {
+  n: number;
+  cell: number;
+  orbScale: number;
+  /** font scale relative to the 4x4 board */
+  fontScale: number;
+  cellX(c: number): number;
+  cellY(r: number): number;
+}
+export function boardGeom(n: number): BoardGeom {
+  const cell = (BOARD - PAD * 2 - GAP * (n - 1)) / n;
+  return {
+    n,
+    cell,
+    orbScale: ((cell - 10) / BALL_TEX) * TEX,
+    fontScale: cell / CELL,
+    cellX: (c) => BOARD_X + PAD + cell / 2 + c * (cell + GAP),
+    cellY: (r) => BOARD_Y + PAD + cell / 2 + r * (cell + GAP),
+  };
+}
+export function boardKey(n: number): string {
+  return `board-${n}`;
+}
+
 export const FROG_W = 340;
 export const FROG_H = 300;
 
@@ -297,11 +322,12 @@ function goldBand(ctx: Ctx, x: number, y: number, w: number, h: number, thick: n
   }
 }
 
-function socketCenter(r: number, c: number): [number, number] {
-  return [PAD + CELL / 2 + c * (CELL + GAP), PAD + CELL / 2 + r * (CELL + GAP)];
-}
-
-function drawBoard(ctx: Ctx) {
+function drawBoard(ctx: Ctx, n = 4) {
+  const cell = (BOARD - PAD * 2 - GAP * (n - 1)) / n;
+  const socketCenter = (r: number, c: number): [number, number] => [
+    PAD + cell / 2 + c * (cell + GAP),
+    PAD + cell / 2 + r * (cell + GAP),
+  ];
   const rnd = seeded(7);
   const S = BOARD;
   const g = ctx.createLinearGradient(0, 0, S, S);
@@ -348,8 +374,8 @@ function drawBoard(ctx: Ctx) {
   // carved grid lines between the sockets
   ctx.strokeStyle = 'rgba(0,0,0,0.28)';
   ctx.lineWidth = 3;
-  for (let k = 1; k < 4; k++) {
-    const p = PAD + k * (CELL + GAP) - GAP / 2;
+  for (let k = 1; k < n; k++) {
+    const p = PAD + k * (cell + GAP) - GAP / 2;
     ctx.beginPath();
     ctx.moveTo(PAD + 10, p);
     ctx.lineTo(S - PAD - 10, p);
@@ -359,8 +385,8 @@ function drawBoard(ctx: Ctx) {
   }
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 1.5;
-  for (let k = 1; k < 4; k++) {
-    const p = PAD + k * (CELL + GAP) - GAP / 2 + 2;
+  for (let k = 1; k < n; k++) {
+    const p = PAD + k * (cell + GAP) - GAP / 2 + 2;
     ctx.beginPath();
     ctx.moveTo(PAD + 10, p);
     ctx.lineTo(S - PAD - 10, p);
@@ -380,11 +406,11 @@ function drawBoard(ctx: Ctx) {
 
   goldBand(ctx, 14, 14, S - 28, S - 28, 16);
 
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
       const [cx, cy] = socketCenter(r, c);
-      const R = CELL / 2 - 4;
-      const rad = 20;
+      const R = cell / 2 - 4;
+      const rad = Math.round(20 * (cell / CELL));
       const sg = ctx.createLinearGradient(cx, cy - R, cx, cy + R);
       sg.addColorStop(0, '#121109');
       sg.addColorStop(1, '#3a3830');
@@ -951,6 +977,208 @@ function drawIconSound(ctx: Ctx, S: number, on: boolean) {
   }
 }
 
+
+/** Two-tone stroke helper: dark outline then gold line, same path. */
+function twoTone(ctx: Ctx, path: () => void, gold = '#f3d060', outer = 12, inner = 6) {
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#3a2405';
+  ctx.lineWidth = outer;
+  path();
+  ctx.stroke();
+  ctx.strokeStyle = gold;
+  ctx.lineWidth = inner;
+  path();
+  ctx.stroke();
+}
+
+function drawIconHammer(ctx: Ctx, S: number) {
+  // handle
+  twoTone(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(S * 0.3, S * 0.78);
+    ctx.lineTo(S * 0.58, S * 0.5);
+  }, '#c98c3a', 14, 8);
+  // head
+  ctx.save();
+  ctx.translate(S * 0.62, S * 0.4);
+  ctx.rotate(Math.PI / 4);
+  ctx.fillStyle = '#3a2405';
+  roundRect(ctx, -S * 0.26, -S * 0.15, S * 0.52, S * 0.3, 6);
+  ctx.fill();
+  const g = ctx.createLinearGradient(0, -S * 0.1, 0, S * 0.1);
+  g.addColorStop(0, '#fff0b0');
+  g.addColorStop(1, '#d9a62e');
+  ctx.fillStyle = g;
+  roundRect(ctx, -S * 0.22, -S * 0.11, S * 0.44, S * 0.22, 5);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawIconShuffle(ctx: Ctx, S: number) {
+  const arrow = (y0: number, y2: number) => {
+    ctx.beginPath();
+    ctx.moveTo(S * 0.16, y0);
+    ctx.bezierCurveTo(S * 0.5, y0, S * 0.5, y2, S * 0.78, y2);
+    const up = y2 < y0 ? 1 : -1;
+    ctx.moveTo(S * 0.66, y2 + up * S * 0.12);
+    ctx.lineTo(S * 0.82, y2);
+    ctx.lineTo(S * 0.66, y2 - up * S * 0.12);
+  };
+  twoTone(ctx, () => arrow(S * 0.3, S * 0.7), '#f3d060', 11, 5);
+  twoTone(ctx, () => arrow(S * 0.7, S * 0.3), '#f3d060', 11, 5);
+}
+
+function drawIconHome(ctx: Ctx, S: number) {
+  twoTone(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(S * 0.16, S * 0.52);
+    ctx.lineTo(S * 0.5, S * 0.2);
+    ctx.lineTo(S * 0.84, S * 0.52);
+    ctx.moveTo(S * 0.26, S * 0.46);
+    ctx.lineTo(S * 0.26, S * 0.8);
+    ctx.lineTo(S * 0.74, S * 0.8);
+    ctx.lineTo(S * 0.74, S * 0.46);
+  });
+}
+
+function drawIconTemple(ctx: Ctx, S: number) {
+  twoTone(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(S * 0.14, S * 0.42);
+    ctx.lineTo(S * 0.5, S * 0.16);
+    ctx.lineTo(S * 0.86, S * 0.42);
+    ctx.closePath();
+    for (const x of [0.26, 0.5, 0.74]) {
+      ctx.moveTo(S * x, S * 0.46);
+      ctx.lineTo(S * x, S * 0.74);
+    }
+    ctx.moveTo(S * 0.16, S * 0.8);
+    ctx.lineTo(S * 0.84, S * 0.8);
+  }, '#f3d060', 10, 5);
+}
+
+function drawIconShare(ctx: Ctx, S: number) {
+  const dot = (x: number, y: number) => {
+    ctx.fillStyle = '#3a2405';
+    ctx.beginPath();
+    ctx.arc(x, y, S * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f3d060';
+    ctx.beginPath();
+    ctx.arc(x, y, S * 0.085, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  twoTone(ctx, () => {
+    ctx.beginPath();
+    ctx.moveTo(S * 0.72, S * 0.25);
+    ctx.lineTo(S * 0.3, S * 0.5);
+    ctx.lineTo(S * 0.72, S * 0.75);
+  }, '#f3d060', 10, 4);
+  dot(S * 0.72, S * 0.25);
+  dot(S * 0.3, S * 0.5);
+  dot(S * 0.72, S * 0.75);
+}
+
+function drawIconClock(ctx: Ctx, S: number) {
+  twoTone(ctx, () => {
+    ctx.beginPath();
+    ctx.arc(S / 2, S / 2, S * 0.3, 0, Math.PI * 2);
+    ctx.moveTo(S / 2, S * 0.3);
+    ctx.lineTo(S / 2, S / 2);
+    ctx.lineTo(S * 0.66, S * 0.6);
+  }, '#f3d060', 11, 5);
+}
+
+function drawIconFlame(ctx: Ctx, S: number) {
+  const flame = (scale: number, fill: string) => {
+    ctx.save();
+    ctx.translate(S / 2, S * 0.56);
+    ctx.scale(scale, scale);
+    ctx.beginPath();
+    ctx.moveTo(0, -S * 0.42);
+    ctx.bezierCurveTo(S * 0.3, -S * 0.15, S * 0.34, S * 0.1, S * 0.18, S * 0.3);
+    ctx.bezierCurveTo(S * 0.08, S * 0.42, -S * 0.08, S * 0.42, -S * 0.18, S * 0.3);
+    ctx.bezierCurveTo(-S * 0.34, S * 0.1, -S * 0.3, -S * 0.15, 0, -S * 0.42);
+    ctx.closePath();
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.restore();
+  };
+  flame(1.08, '#3a2405');
+  flame(0.95, '#ff7a1a');
+  flame(0.62, '#ffd45c');
+}
+
+function drawIconStar(ctx: Ctx, S: number, filled: boolean) {
+  const path = () => {
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 === 0 ? S * 0.42 : S * 0.19;
+      const x = S / 2 + Math.cos(a) * r;
+      const y = S / 2 + 4 + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  };
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#3a2405';
+  ctx.lineWidth = 8;
+  path();
+  ctx.stroke();
+  if (filled) {
+    const g = ctx.createLinearGradient(0, 0, 0, S);
+    g.addColorStop(0, '#fff2a8');
+    g.addColorStop(1, '#e0a324');
+    ctx.fillStyle = g;
+  } else {
+    ctx.fillStyle = 'rgba(20,16,8,0.55)';
+  }
+  path();
+  ctx.fill();
+}
+
+function drawBadge(ctx: Ctx, S: number) {
+  ctx.fillStyle = '#3a2405';
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, S / 2 - 1, 0, Math.PI * 2);
+  ctx.fill();
+  const g = ctx.createRadialGradient(S * 0.4, S * 0.35, 2, S / 2, S / 2, S / 2);
+  g.addColorStop(0, '#ff6a4a');
+  g.addColorStop(1, '#b4211c');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(S / 2, S / 2, S / 2 - 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawVignette(ctx: Ctx, w: number, h: number) {
+  const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.62);
+  g.addColorStop(0, 'rgba(255,0,0,0)');
+  g.addColorStop(0.6, 'rgba(230,30,10,0.55)');
+  g.addColorStop(1, 'rgba(255,40,10,1)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawHand(ctx: Ctx, S: number) {
+  // simple pointing hand for the tutorial
+  ctx.fillStyle = '#3a2405';
+  ctx.beginPath();
+  ctx.arc(S * 0.5, S * 0.62, S * 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  roundRect(ctx, S * 0.4, S * 0.08, S * 0.2, S * 0.6, S * 0.1);
+  ctx.fill();
+  ctx.fillStyle = '#ffe3b8';
+  ctx.beginPath();
+  ctx.arc(S * 0.5, S * 0.62, S * 0.24, 0, Math.PI * 2);
+  ctx.fill();
+  roundRect(ctx, S * 0.44, S * 0.12, S * 0.12, S * 0.56, S * 0.06);
+  ctx.fill();
+}
+
 function drawSoftCircle(ctx: Ctx, S: number) {
   const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
   g.addColorStop(0, 'rgba(255,255,255,1)');
@@ -975,7 +1203,7 @@ export function buildTextures(scene: Phaser.Scene): void {
     tex.refresh();
   };
   for (const [v, style] of Object.entries(ORB_STYLES)) make(`orb-${v}`, BALL_TEX, BALL_TEX, (c) => drawOrb(c, BALL_TEX, style));
-  make('board', BOARD, BOARD, drawBoard);
+  for (const n of [3, 4, 5]) make(boardKey(n), BOARD, BOARD, (c) => drawBoard(c, n));
   make('bg', W, H, drawBackground);
   make('frog', FROG_W, FROG_H, drawFrog);
   make('frog-lids', FROG_W, FROG_H, drawFrogLids);
@@ -985,7 +1213,23 @@ export function buildTextures(scene: Phaser.Scene): void {
   make('button-sm', 110, 84, (c) => drawPlaque(c, 110, 84, true));
   make('panel', 600, 520, (c) => drawPlaque(c, 600, 520, false, true));
   make('torch', 80, 200, drawTorch);
+  make('button-wide', 440, 84, (c) => drawPlaque(c, 440, 84, true));
+  make('button-mode', 600, 110, (c) => drawPlaque(c, 600, 110, true));
+  make('panel-tall', 640, 1040, (c) => drawPlaque(c, 640, 1040, false, true));
+  make('strip', 660, 60, (c) => drawPlaque(c, 660, 60, false));
   make('icon-undo', 64, 64, (c) => drawIconUndo(c, 64));
+  make('icon-hammer', 64, 64, (c) => drawIconHammer(c, 64));
+  make('icon-shuffle', 64, 64, (c) => drawIconShuffle(c, 64));
+  make('icon-home', 64, 64, (c) => drawIconHome(c, 64));
+  make('icon-temple', 64, 64, (c) => drawIconTemple(c, 64));
+  make('icon-share', 64, 64, (c) => drawIconShare(c, 64));
+  make('icon-clock', 64, 64, (c) => drawIconClock(c, 64));
+  make('icon-flame', 64, 64, (c) => drawIconFlame(c, 64));
+  make('star-on', 64, 64, (c) => drawIconStar(c, 64, true));
+  make('star-off', 64, 64, (c) => drawIconStar(c, 64, false));
+  make('badge', 40, 40, (c) => drawBadge(c, 40));
+  make('vignette', W, H, (c) => drawVignette(c, W, H));
+  make('hand', 96, 96, (c) => drawHand(c, 96));
   make('icon-sound-on', 64, 64, (c) => drawIconSound(c, 64, true));
   make('icon-sound-off', 64, 64, (c) => drawIconSound(c, 64, false));
   make('spark', 32, 32, (c) => drawSoftCircle(c, 32));
